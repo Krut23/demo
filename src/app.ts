@@ -1,6 +1,9 @@
 import express,{ Request, Response } from 'express';
 import * as redis from 'redis';
 import { promisify } from 'util';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 interface Result {
   Fname: string;
