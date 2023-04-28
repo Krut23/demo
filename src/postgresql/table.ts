@@ -1,4 +1,4 @@
-const { Client } = require('pg')
+import {Client} from 'pg';
 
 const client = new Client({
     host: "localhost",
@@ -10,15 +10,15 @@ const client = new Client({
 
 client.connect();
 
-// client.query(
-//     "CREATE TABLE student (id UUID NOT NULL DEFAULT gen_random_uuid(),student_id integer PRIMARY KEY NOT NULL,name varchar(50) NOT NULL,email varchar(50) NOT NULL,birthdate date NOT NULL,gender varchar(6) NOT NULL);", (err, res) => {
-//     if (err) {
-//         console.error(err);
-//         return;
-//     }
-//     console.log('created table student');
-//         client.end();
-// })
+client.query(
+    "CREATE TABLE student (id UUID NOT NULL DEFAULT gen_random_uuid(),student_id integer PRIMARY KEY NOT NULL,name varchar(50) NOT NULL,email varchar(50) NOT NULL,birthdate date NOT NULL,gender varchar(6) NOT NULL);", (err, res) => {
+    if (err) {
+        console.error(err);
+        return;
+    }
+    console.log('created table student');
+        client.end();
+})
 
 
 client.query(
