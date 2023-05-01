@@ -1,39 +1,62 @@
-import express,{ Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import * as redis from 'redis';
-import { promisify } from 'util';
 import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import Joi from 'joi';
+import './Redisclient';
+
+
 
 dotenv.config();
+const app = express();
+const url = process.env.REDIS_URL || 'redis://localhost:6379';
+const redisClient = redis.createClient({
+    url
+});
+const port = 3005;
+
+app.use(bodyParser.json());
 
 interface Result {
   Fname: string;
   Lname: string;
   Age: number;
   Contact: number;
+  Email: string;
+  password: string;
+  confirmpassword: string;
 }
 
-const app = express();
-const port: number = 3004;
-
-const redisClient = redis.createClient();
-
-
-const redisGetAsync = promisify(redisClient.get).bind(redisClient);
-
-redisClient.connect();
-redisClient.on('connect', () =>  {
-  console.log('connected Redis');
+const schema = Joi.object({
+  Fname: Joi.string().required(),
+  Lname: Joi.string().required(),
+  Age: Joi.number().integer().min(0).required(),
+  Contact: Joi.number().integer().min(0).required(),
+  Email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+  confirmpassword: Joi.string().valid(Joi.ref('password')).required(),
 });
 
-app.get('/', async (req: Request, res: Response) => {
-  const keyName: string = 'mydetail';
+app.use(express.json());
 
-let result: Result = {
-  Fname: 'krutik',
-  Lname: 'Undhad',
-  Age: 22,
-  Contact: 9978050389,
-};
+app.post('/post', async (req: Request, res: Response) => {
+  const { error, value } = schema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({ error: error.details });
+  }
+
+  const keyName: string = 'mydetail1';
+
+  const result: Result = {
+    Fname: value.Fname,
+    Lname: value.Lname,
+    Age: value.Age,
+    Contact: value.Contact,
+    Email: value.Email,
+    password: value.password,
+    confirmpassword: value.confirmpassword,
+  };
 
   let responseArray: Result = result;
 
@@ -46,18 +69,15 @@ let result: Result = {
       console.log('SET Cache');
       redisClient.set(keyName, JSON.stringify(result));
     }
+
+    // send success response here
+    res.status(200).json(responseArray);
   } catch (err) {
     console.error(`Error while getting/setting Redis cache: ${err}`);
-  
-  }
-
-  res.status(200).json(responseArray);
+    res.status(500).json({ error: 'Internal Server Error' }); 
+  } 
 });
-app.listen(port,()=>{
-  console.log(`App is listening at http://localhost:${port}`)
-})
 
-
-
-
-
+app.listen(port, () => {
+  console.log(`App is listening at http://localhost:${port}`);
+});

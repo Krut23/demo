@@ -1,46 +1,45 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const redis = __importStar(require("redis"));
-const util_1 = require("util");
-const app = express_1.default();
-const port = 3004;
-const redisClient = redis.createClient();
-const redisGetAsync = util_1.promisify(redisClient.get).bind(redisClient);
-redisClient.connect();
-redisClient.on('connect', () => {
-    console.log('connected Redis');
+import express from 'express';
+import * as redis from 'redis';
+import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import Joi from 'joi';
+import './Redisclient';
+dotenv.config();
+const app = express();
+const url = process.env.REDIS_URL || 'redis://localhost:6379';
+const redisClient = redis.createClient({
+    url
 });
-app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const keyName = 'mydetail';
-    let result = {
-        Fname: 'krutik',
-        Lname: 'Undhad',
-        Age: 22,
-        Contact: 9978050389,
+const port = 3005;
+app.use(bodyParser.json());
+const schema = Joi.object({
+    Fname: Joi.string().required(),
+    Lname: Joi.string().required(),
+    Age: Joi.number().integer().min(0).required(),
+    Contact: Joi.number().integer().min(0).required(),
+    Email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    confirmpassword: Joi.string().valid(Joi.ref('password')).required(),
+});
+app.use(express.json());
+app.post('/post', async (req, res) => {
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details });
+    }
+    const keyName = 'mydetail1';
+    const result = {
+        Fname: value.Fname,
+        Lname: value.Lname,
+        Age: value.Age,
+        Contact: value.Contact,
+        Email: value.Email,
+        password: value.password,
+        confirmpassword: value.confirmpassword,
     };
     let responseArray = result;
     try {
-        const getCachedata = yield redisClient.get(keyName);
+        const getCachedata = await redisClient.get(keyName);
         if (getCachedata) {
             responseArray = JSON.parse(getCachedata);
             console.log('GET Cache');
@@ -49,12 +48,13 @@ app.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             console.log('SET Cache');
             redisClient.set(keyName, JSON.stringify(result));
         }
+        res.status(200).json(responseArray);
     }
     catch (err) {
         console.error(`Error while getting/setting Redis cache: ${err}`);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-    res.status(200).json(responseArray);
-}));
+});
 app.listen(port, () => {
     console.log(`App is listening at http://localhost:${port}`);
 });
