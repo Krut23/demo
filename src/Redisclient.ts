@@ -1,5 +1,8 @@
-const redis = require("redis");
+import * as redis from 'redis';
+import dotenv from 'dotenv';
+
 const redisclient = redis.createClient();
+dotenv.config();
 
 (async () => {
     await redisclient.connect();
@@ -7,7 +10,7 @@ const redisclient = redis.createClient();
 
 
 redisclient.on("ready", () => {
-    console.log(" Redis Connected");
+    console.log("Redis Connected");
 });
 
 redisclient.on("error", (_error: any) => {
