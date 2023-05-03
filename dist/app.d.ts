@@ -1,2 +1,2 @@
-import './postgresql/table';
-import './postgresql/insert';
+import './postgresql/table.ts';
+import './postgresql/insert.ts';
