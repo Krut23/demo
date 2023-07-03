@@ -1,0 +1,75 @@
+{
+  "name": "feathers-chat",
+  "description": "",
+  "version": "0.0.0",
+  "homepage": "",
+  "private": true,
+  "keywords": [
+    "feathers"
+  ],
+  "author": {},
+  "contributors": [],
+  "bugs": {},
+  "engines": {
+    "node": ">= 18.16.1"
+  },
+  "feathers": {
+    "language": "js",
+    "packager": "npm",
+    "database": "postgresql",
+    "framework": "express",
+    "transports": [
+      "rest",
+      "websockets"
+    ],
+    "schema": "typebox"
+  },
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "files": [
+    "lib/client.js",
+    "lib/**/*.d.ts",
+    "lib/**/*.shared.js"
+  ],
+  "main": "src/client",
+  "type": "module",
+  "scripts": {
+    "start": "node src",
+    "dev": "nodemon src/",
+    "prettier": "npx prettier \"**/*.js\" --write",
+    "mocha": "cross-env NODE_ENV=test mocha test/ --recursive --exit",
+    "test": "cross-env NODE_ENV=test npm run migrate && npm run mocha",
+    "bundle:client": "npm pack --pack-destination ./public",
+    "migrate": "knex migrate:latest",
+    "migrate:make": "knex migrate:make"
+  },
+  "dependencies": {
+    "@feathersjs/adapter-commons": "^5.0.6",
+    "@feathersjs/authentication": "^5.0.6",
+    "@feathersjs/authentication-client": "^5.0.6",
+    "@feathersjs/configuration": "^5.0.6",
+    "@feathersjs/errors": "^5.0.6",
+    "@feathersjs/express": "^5.0.6",
+    "@feathersjs/feathers": "^5.0.6",
+    "@feathersjs/knex": "^5.0.6",
+    "@feathersjs/schema": "^5.0.6",
+    "@feathersjs/socketio": "^5.0.6",
+    "@feathersjs/transport-commons": "^5.0.6",
+    "@feathersjs/typebox": "^5.0.6",
+    "compression": "^1.7.4",
+    "knex": "^2.4.2",
+    "pg": "^8.11.1",
+    "winston": "^3.9.0"
+  },
+  "devDependencies": {
+    "@feathersjs/cli": "^5.0.6",
+    "@feathersjs/rest-client": "^5.0.6",
+    "axios": "^1.4.0",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8"
+  }
+}
